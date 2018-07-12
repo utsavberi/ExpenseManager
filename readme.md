@@ -9,7 +9,7 @@ You can add groups in main.js by adding them to `var groups`.
 ## TODO:
 * React native
 * Plaid Integration
-* Refactor to use ES6 modules
+* ~~Refactor to use ES6 modules~~
 * Dynamically add groups
 * Login
 
