@@ -288,7 +288,7 @@ function Dashboard(monthlyData){
     const TESTER = document.getElementById('dashboard').appendChild(element);
     // console.log(this.sortedMonthlyData);
 
-    const data = '';
+    let data = '';
     for(let i = 0; i<this.sortedMonthlyData.length; i++){
       data += '<h3>'+months[i]+'</h3>';
       data +='<table>';
