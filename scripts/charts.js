@@ -1,5 +1,5 @@
 'use strict';
-function createElement(elementName, chartName, type,bootstrapClass, width){
+export function createElement(elementName, chartName, type,bootstrapClass, width){
   const element = document.createElement('div');
   element.id = chartName + '_' + type;
   element.className = type+'_chart '+bootstrapClass;
@@ -8,7 +8,7 @@ function createElement(elementName, chartName, type,bootstrapClass, width){
   const TESTER = document.getElementById(elementName).appendChild(element);
   return TESTER;
 }
-function createScatterChart(elementName, chartName, x, y){
+export function createScatterChart(elementName, chartName, x, y){
   const TESTER = createElement(elementName, chartName, 'scatterChart','', '50%');
   try{
     Plotly.plot( TESTER, [{
@@ -26,7 +26,7 @@ function createScatterChart(elementName, chartName, x, y){
 	
 }
 
-function createMultiScatterChart(elementName, chartName,data){
+export function createMultiScatterChart(elementName, chartName,data){
   const TESTER = createElement(elementName, chartName, 'scatterChart','', '50%');
   try{
     Plotly.plot( TESTER, data, 
@@ -39,7 +39,7 @@ function createMultiScatterChart(elementName, chartName,data){
   }
 	
 }
-function createBarChart(elementName, title, values, labels){
+export function createBarChart(elementName, title, values, labels){
   const TESTER = createElement(elementName, title, 'pieChart','', '33.33%');
   try{
 

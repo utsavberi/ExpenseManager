@@ -1,5 +1,8 @@
 'use strict';
 import parsers from './parsers.js';
+import {createElement, createScatterChart, createMultiScatterChart, createBarChart} from './charts.js'
+import data from './data.js'
+
 function convertAccountDataToOb(str, parsers){
   const input = str.split('\n');
   const obs = [];

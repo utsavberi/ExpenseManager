@@ -19,4 +19,9 @@ You can add groups in main.js by adding them to `var groups`.
 ## Common Issues
 If you get the cors exception on your web console (on Mac), just navigate to the directory you want to use and enter the following command:
 `python -m SimpleHTTPServer 8000`
+or
+```
+sudo npm install http-server -g
+http-server -p 8000
+```
 on windows you will need to setup a webserver or turn off the CORS security on your chrome application
