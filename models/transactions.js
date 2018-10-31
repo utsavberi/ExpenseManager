@@ -31,4 +31,47 @@ module.exports = {
       }
     });
   },
+  getAllTransactions(callback){
+    MongoClient.connect(uri, (err, mongoclient) => {
+      if (err) {
+        prettyPrintResponse(err);
+      }
+      const collection2 = mongoclient.db('expensemanager').collection('transactions');
+      collection2.find({
+        "$and":[
+          {
+            "$expr":{
+              "$eq":[
+                {
+                  "$year":{
+                    "$dateFromString":{
+                      "dateString":"$date",
+                      "format":"%Y-%m-%d"
+                    }
+                  }
+                },
+                2018
+              ]
+            }
+          },
+          {
+            "category":{
+              "$nin":[
+                [
+                  "Payment",
+                  "Credit Card"
+                ]
+              ]
+            }
+          },
+          {"amount":{"$gt": 0}}
+        ]
+      })
+      .toArray(function(err, docs){
+        callback(err, docs);
+        mongoclient.close();
+
+      });
+    });
+  }
 };

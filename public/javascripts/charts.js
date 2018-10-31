@@ -12,7 +12,7 @@ export function createScatterChart(elementName, chartName, x, y){
   const TESTER = createElement(elementName, chartName, 'scatterChart','', '50%');
   try{
     Plotly.plot( TESTER, [{
-      x: ['jan', 'feb', 'mar','apr','may','jun'],
+      x: x,
       y: y,
       type:'scatter',
     }], 

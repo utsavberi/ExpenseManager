@@ -1,39 +1,22 @@
 'use strict';
-import parsers from './parsers.js';
 import {createElement, createScatterChart, createMultiScatterChart, createBarChart} from './charts.js'
-import data from './data.js'
 
-function convertAccountDataToOb(str, parsers){
-  const input = str.split('\n');
-  const obs = [];
-  for(var i = 0; i<input.length; i++){
-    let ob = {};
-    try{
-      ob = parsers.bofaDebitParser(input[i]);
-    }catch(e){
-      try{
-        ob = parsers.bofaCreditParser(input[i]);
-      }catch(e){
-        ob = parsers.discovercreditcardparser(input[i]);
-      }
-    }
-    obs.push(ob);
-  }
-  return obs.sort(function(a,b){return a.date - b.date;});
+var months = ['jan', 'feb', 'mar','apr','may','jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+
+function getDateFromString(dateStr){
+var parts =dateStr.split('-');
+return new Date(parts[0], parts[1] - 1, parts[2]); 
 }
-
-var months = ['jan', 'feb', 'mar','apr','may','jun'];
-
 
 function monthloyDataParser(records){
   this.records = records;
   this.getData = function(){
     const monthlyData = [];
     for(var i = 0; i<records.length; i++){
-      if(!monthlyData[records[i].date.getMonth()]){
-        monthlyData[records[i].date.getMonth()] = [];
+      if(!monthlyData[getDateFromString(records[i].date).getMonth()]){
+        monthlyData[getDateFromString(records[i].date).getMonth()] = [];
       }
-      monthlyData[records[i].date.getMonth()].push(records[i]);
+      monthlyData[getDateFromString(records[i].date).getMonth()].push(records[i]);
     }  
     return monthlyData;
   };
@@ -41,34 +24,17 @@ function monthloyDataParser(records){
 
 function Dashboard(monthlyData){
 
-  function getMonthlySavingsData(monthlyData){
-    const savings = [];
-    for(let i = 0; i<monthlyData.length; i++){
-      let first = null;
-      let last = null;
-      for(let j = 0; j<monthlyData[i].length; j++){
-        if(first === null && monthlyData[i][j].balance){
-          first = monthlyData[i][j];
-        }
-        if(monthlyData[i][j] && monthlyData[i][j].balance){
-          last = monthlyData[i][j];
-        }
-      }
-      savings.push( last.balance - first.balance);
-    }
-    return savings;
-  }
-
   function getMonthlyExpenseData(monthlyData){
     const expenses = [];
     for(let i = 0; i<monthlyData.length; i++){
       let sum = 0;
       for(let j = 0; j<monthlyData[i].length; j++){
-        if(monthlyData[i][j].amount<0){
+        if(excludedTransactionIds.indexOf(monthlyData[i][j].transaction_id) < 0)
+        {
           sum+=monthlyData[i][j].amount;
         }
       }
-      expenses.push( sum*-1);
+      expenses.push(sum);
     }
     return expenses;
   }
@@ -77,7 +43,7 @@ function Dashboard(monthlyData){
     const copy = [...monthlyData];
     const result = [];
     for(let i = 0; i<copy.length; i++){
-      result.push(copy[i].sort(function(a,b){return a.amount - b.amount;}));
+      result.push(copy[i].sort(function(a,b){return b.amount - a.amount;}));
     }
     return result;
   }
@@ -87,26 +53,46 @@ function Dashboard(monthlyData){
                  (25 + 70 * Math.random()) + '%,' + 
                  (85 + 10 * Math.random()) + '%)';
   }
+  const excludedTransactionIds=[
+  '5kOOjQrrwXHqKmddLo6mSkg04PK7OwsBaEX3P',//2018-09-14  Best Buy  false 1646.86 amex  Shops,Computers and Electronics other
+'5YD4MEEXMRupoQwnp6LEi55Oazv96QhB8Jek8',//5YD4MEEXMRupoQwnp6LEi55Oazv96QhB8Jek8 2018-06-25  Zelle Transfer Conf# 103ba788e; abha  false 2500  bofa  Transfer,Debit  other
+'Kkbdw99YwLF0eAbR0jKdTaak54JxbXtQwrMR3',// 2018-06-18  Zelle Transfer Conf# f9cac7d69; abha  false 1335  bofa  Transfer,Debit  other
+'OjND100p1qIEr5ObEwPMCMMBOy0ZdjH8ErLAn',//2018-03-21  TransferWise Inc DES:utsav beri ID:32406687 INDN:utsav beri CO ID:XXXXX33521 IAT PMT INFO: REM 000000000000000000 FOR MORE INFORMATION CONTACT CUSTOMER SERVICE false 3500  bofa  Transfer,Debit  TransferWise'
+  'XdNAvMMpvmI478Yo4yjRUPP7N591LeU4gRvJn',//todo why  2018-02-12  Zelle Transfer Conf# 477d21094; abha  false 2000  bofa  Transfer,Debit  other'
+  'N0NLDQQpDPCLnQzZLdrOCnn86vqOVytRDVN7L',// todo why  2018-02-02  WAYFAIR* wayfair.com  false 1990.93 bofa  Shops,Furniture and Home Decor  shopping'
+  '4Kee0RJJdXh7OYAA3ejYixJYw1zKMBFkpjYv9',// 2018-09-18  APPLE ONLINE STORE  false 328.31  amex  Shops,Computers and Electronics other
+  '0qRRZVrr9Xib8jppr0Pji84YgKMkPwUrz1Lm3',//  2018-09-19  Abercrombie false 93.6  amex  Shops,Clothing and Accessories  other'
+  'Ykqq3OjjDeHP4AYYXNKACJykQ1MYNoFQb6VML',//  2018-09-26  ALDOSHOES.COM 9920  false 63.2  amex  Service other'
+'9nn8BXXJOH50kXXE37kueZwLj7nEguRoq47A',// 2018-10-12  UPS false 69.23 amex  Service,Shipping and Freight  other'
+'yBqqmZXXLbtVDwaaANvwF6jZ1MKwzLfO8V6y9',//  2018-10-10  UPS false 13.08 amex  Service,Shipping and Freight  other'
+  '4Kee0RJJdXh7OYAA3ejYixJYw1zKMBFkpjYkz',//  2018-07-22  JetBlue false 131.2 amex  Travel,Airlines and Aviation Services other'
+  'j4Nb1ddO1ytR3oamR7EzFJJV7vjX3MUR69yrE',// 2018-04-10  SKINNYFITCOM  false 59.95 bofa  Food and Drink,Restaurants  other
+'3Y6meOOXeQuMmn5QMOjzHbbNBwxxNqIKyamyL',//  2018-10-09  Online Banking payment to CRD 0273 Confirmation# 4113732109 false 468.65  bofa  Transfer,Debit  other'
+'6Y1aMBBXMRuAO0ZyAbPzI99ZKo8NbvcaRPQb5',  //2018-04-05  Best Buy  false 2393.99 bofa  Shops,Computers and Electronics other'
+'gb77p1zz4OHJyPqqB6oPs89DaQv3Z7UqVQ7yy',//  2018-09-14  WAYFAIR.COM false 311.05  amex  Shops,Furniture and Home Decor  shopping'
+];
   const groups={
-    'allston convenience store':['ALLSTON CONVENIENCE STOR','LEE\'S 2', '7-eleven','RICHDALE'],
+    'allston convenience store':['Circle K','ALLSTON CONVENIENCE STO PURCHASE','ALLSTON CONVENIENCE STOR','LEE\'S 2', '7-eleven','RICHDALE'],
       
-    'shopping':['ELEMENTS BROOKLINE','MICHAEL KORS','CIRCLE K 07076 WEST FALMOUTHME','PRIMARK','amazon','TJMAXX','gap','target','BATH AND BODY WORKS','LUSH',
-      'LOCCITANE','BATH AND BODY WORKS','MAC','BARNES & NOBLE','VICTORIA','WAYFAIR','GROUPON','PRIME VIDEO'],
+    'shopping':['The Body Shop','BATHANDBODYWORKS','FABLETICS','SKINNYFITCOM','TONYDASH.COM','Bath & Body Works','Abercrombie','Zelle Transfer Conf# 9e11c72ff; abha','ELEMENTS BROOKLINE','MICHAEL KORS','CIRCLE K 07076 WEST FALMOUTHME','PRIMARK','amazon','TJMAXX','gap','target','BATH AND BODY WORKS','LUSH',
+      'T.J.Maxx','LOCCITANE','H&M','BATH AND BODY WORKS','MAC','BARNES & NOBLE','VICTORIA','WAYFAIR','GROUPON','PRIME VIDEO', 'T.J. Maxx'],
       
-    'health':['bsc','cvs'],
-    'bills':['comcast','sprint','NATIONAL GRID','eversource','Field Corp','ROKU','SUPERCUTS','THREADING'],
+    'health':['cvs','Walgreens'],
+    'bills':['Groupon','MEMBERSHIP FEE','PAY U FERNS & PETALS PG','UPS','FedEx','Prudential Center Tower','bsc','Google','comcast','sprint','NATIONAL GRID','eversource','Field Corp','ROKU','SUPERCUTS','THREADING'],
 
-    'vacation':['BKOFAMERICA ATM 05/26 #000007497 WITHDRWL ALLSTON ALLSTON MA','SPIRIT','NEW ORLEANS','INDIA HOUSE','SUGARLOAF','CAJUN ENCOUNTERS','BKOFAMERICA ATM 02/25 #000007062 WITHDRWL ALLSTON ALLSTON MA','SANTANDER 02/16 #000481589 WITHDRWL 100 Huntington Av Boston MA'],
+    'vacation':['BKOFAMERICA ATM 02/25 #000007062 WITHDRWL ALLSTON','SANTANDER 02/16 #000481589 WITHDRWL 100 Huntington Av','Merry Christmas & All That Jazz','Magazine Spur','Tropical Isle Original','Maison','The Ruby Slipper Cafe',' Bayou Burger & Sports Company','THE RUMHOUSE','BKOFAMERICA ATM 05/26 #000007497 WITHDRWL ALLSTON','TRAVEL GUARD INSURANCE','Lufthansa','BKOFAMERICA ATM 05/26 #000007497 WITHDRWL ALLSTON ALLSTON MA','SPIRIT','NEW ORLEANS','INDIA HOUSE','SUGARLOAF','CAJUN ENCOUNTERS','BKOFAMERICA ATM 02/25 #000007062 WITHDRWL ALLSTON ALLSTON MA','SANTANDER 02/16 #000481589 WITHDRWL 100 Huntington Av Boston MA'],
 
-    'groccery':['STAR','TRADER JOE\'S','ALLSTON MARKET'],
+    'groccery':['Walmart','BFRESH 2419','INSTACART','Patel Brothers','STAR','TRADER JOE\'S','ALLSTON MARKET'],
       
-    'restaurants and party':['EAT24','D ELLIES CARABASET','VENMO','Bernies','cask','charlies','eats','aubonpain','airport',
+    'restaurants and party':['USA*FANTASY PHOTO BOOT','Boston Harbor Cruises','TARBOOSH PIZZA AND GRILL','Natalie\'s Pizzeria','LOTTO EXPRESS','Offshore Ale Company','THE ORIGINAL BOSTON FROSTY','WORLDPAY','40 - BOSTON','CHIK CHAK','MOOYAH','TST* SILVERTONE BAR & GR','Russell House Tavern','Seamless','EAT24','D ELLIES CARABASET','VENMO','Bernies','cask','charlies','eats','aubonpain','airport',
       'THE CHICKEN','TEMAZCAL','OAK BLUFFS','BCG/CENTERPLATE','MANO SALWA KABAB',
       'MAX BRENNER','WHISKEY','DOMINO', 'CUCHI CUCHI','FOODA','CHATIME','WAGAMAMA','MCDONALD','YARD HOUSE',
-      'BAGUETTE','CHIPOTLE','BARCELONA','PANDA','EB HIDEOUT COMEDY','DUNKIN','MART','liquor','movie','REGAL','HOPEWELL','DURGIN PARK'],
+      'BAGUETTE','CHIPOTLE','BARCELONA','PANDA','EB HIDEOUT COMEDY','DUNKIN','MART','liquor','movie','REGAL','HOPEWELL','DURGIN PARK',
+      'Charlie\'s Pizza', 'Subway', 'Au Bon Pain','SPLENDID BEER AND','GrubHub','ATOM TICKETS, LLC','SHAN-A-PUNJAB','Coppersmith',
+      'Border Cafe','Papa John\'s','The Cheesecake Factory'],
 
     'uber_lyft':['uber','LYFT'],
-    'public transportation':['LOGAN','mbta'],
+    'public transportation':['LOGAN','mbta','COUMMUTER RAIL BACK BAY','GREEN LINE COPLEY','GREEN LINE KENMORE'],
     'irs':['irs'],
 
     'TransferWise':['TransferWise'],
@@ -167,15 +153,13 @@ function Dashboard(monthlyData){
       }
       return x;
     }
-    // console.log(fullName, ob);
-    return getColor?'rgb(255,255,255)':'other';//fullName;//fullName.replace(/[\d+#]/g,'').substr(0,7);
+    return getColor?'rgb(255,255,255)':'other';
   }
   function getGroupedMonthlyData(monthlyData){
     const groupedMonthlyData = [];
     for (let i = 0; i<monthlyData.length; i++){
       for(let j= 0; j<monthlyData[i].length; j++){
-        if(monthlyData[i][j].amount<0)
-        {
+        if(excludedTransactionIds.indexOf(monthlyData[i][j].transaction_id) < 0){
           if(!groupedMonthlyData[i]){
             groupedMonthlyData[i] = [];
           }
@@ -200,31 +184,11 @@ function Dashboard(monthlyData){
     return groupedMonthlyDataOb;
   }
 
-  function getMonthlyBalance(monthlyData){
-    const arr = [];
-    for(let i = 0; i<monthlyData.length; i++){
-      for(let j = 0; j<monthlyData[i].length; j++){
-        if(monthlyData[i][j].balance!==null){
-          arr[i] = monthlyData[i][j].balance;  
-        } 
-      }
-    }
-    return arr;
-  }
-
   this.monthlyData = monthlyData;
-  this.monthlyBalance = getMonthlyBalance(this.monthlyData);
-  this.monthlySavings = getMonthlySavingsData(this.monthlyData);
   this.monthlyExpenses = getMonthlyExpenseData(this.monthlyData);
 
   this.sortedMonthlyData = getMonthlySortedData(this.monthlyData);
   this.groupedMonthlyData = getGroupedMonthlyData(this.monthlyData);
-
-
-
-  // console.log(this.sortedMonthlyData);
-  // console.log(this.groupedMonthlyData);
-
 
   function getPositiveValues(ob){
     const result = [];
@@ -264,16 +228,14 @@ function Dashboard(monthlyData){
   this.drawCharts = function(){
     const element1 = document.createElement('div');
     element1.id = 'charts';
-    // element.className = 'col-md-8';
     const TESTER1 = document.getElementById('dashboard').appendChild(element1);
-    createScatterChart('charts','balance',['jan', 'feb', 'mar','apr','may','jun'],this.monthlyBalance);
-    createScatterChart('charts','savings',['jan', 'feb', 'mar','apr','may','jun'],this.monthlySavings);
-    createScatterChart('charts','expenses',['jan', 'feb', 'mar','apr','may','jun'],this.monthlyExpenses);
+    // createScatterChart('charts','balance',months,this.monthlyBalance);
+    // createScatterChart('charts','savings',months,this.monthlySavings);
+    createScatterChart('charts','expenses',months,this.monthlyExpenses);
 
 
     const element2 = document.createElement('div');
     element2.id = 'bar_charts';
-    // element.className = 'col-md-12';
 
     const TESTER2 = document.getElementById('dashboard').appendChild(element2);
     for(var i = 0; i<this.groupedMonthlyData.length; i++){
@@ -289,29 +251,36 @@ function Dashboard(monthlyData){
     const element = document.createElement('div');
     element.id = 'data';
     const TESTER = document.getElementById('dashboard').appendChild(element);
-    // console.log(this.sortedMonthlyData);
 
-    let data = '';
-    for(let i = 0; i<this.sortedMonthlyData.length; i++){
+    let data = '<div style="clear:both"></div><div>';
+    for(let i = this.sortedMonthlyData.length-1; i>=0; i--){
       data += '<h3>'+months[i]+'</h3>';
       data +='<table>';
+      data +='<tr><th>transactionid</th><th>date</th><th>name</th><th>pending</th><th>amount</th><th>bank</th><th>internal category</th><th>assigned category</th></tr>';
       for(let j= 0; j<this.sortedMonthlyData[i].length; j++){
-        data +='<tr style="background-color:'+getGroupName(this.sortedMonthlyData[i][j]['name'], true)+'">';
-        for(let key in this.sortedMonthlyData[i][j]){
-          data +='<td>'+this.sortedMonthlyData[i][j][key]+'</td>';
+        if(excludedTransactionIds.indexOf(this.sortedMonthlyData[i][j]['transaction_id']) > -1 ){
+          data +='<tr style="background-color: #ffffff;color: #d7d7d7;">'; 
         }
+        else
+        {
+          data +='<tr style="background-color:'+getGroupName(this.sortedMonthlyData[i][j]['name'], true)+'">'; 
+        }
+        data +='<td>'+this.sortedMonthlyData[i][j]['transaction_id']+'</td>';
+        data +='<td>'+this.sortedMonthlyData[i][j]['date']+'</td>';
+        data +='<td>'+this.sortedMonthlyData[i][j]['name']+'</td>';
+        data +='<td>'+this.sortedMonthlyData[i][j]['pending']+'</td>';  
+        data +='<td>'+this.sortedMonthlyData[i][j]['amount']+'</td>';
+        data +='<td>'+this.sortedMonthlyData[i][j]['bank']+'</td>';
+        data +='<td>'+this.sortedMonthlyData[i][j]['category']+'</td>';
         data +='<td>'+getGroupName(this.sortedMonthlyData[i][j]['name'])+'</td>';
-        // data += JSON.stringify(this.sortedMonthlyData[i][j]);
         data +='</tr>';
 
 
       }
-      data +='</table>';
+      data +='</table></div>';
     }
 
     TESTER.innerHTML += data;
-    // TESTER.innerHTML = (JSON.stringify(this.sortedMonthlyData[5]));
-    // TESTER.innerHTML = (JSON.stringify(this.groupedMonthlyData));
   };
 
 
@@ -322,19 +291,8 @@ function Dashboard(monthlyData){
   };
 
     
-  // Plotly.newPlot('jan_pc', data, layout);
 }
 
-var records = convertAccountDataToOb(data, parsers);
 var monthlyData = (new monthloyDataParser(records)).getData();
 var dashboard = new Dashboard(monthlyData);
 dashboard.draw();
-// dashboard.drawCharts();
-// dashboard.writeData();
-// createDashboard(data, [bofaDebitParser, bofaCreditParser], true);
-// createDashboard(abhaKutiya, bofaDebitParser, true);
-// createDashboard(data, bofaCreditParser, false);
-// credit card data
-
-// obs = convertAccountDataToOb(creditCardData, bofaCreditParser);
-//1600 + 85 + 55 + 60 + 150 + 20 + 500 + 260 + 500 + 150 = 3380  + 500 enjoy = 3880 - 6916 ~ 3000 savings every month

@@ -52,10 +52,19 @@ function fetchAllBankTransactions(){
 
 /* GET home page. */
 router.get('/', (req, res, next) => {
-  res.render('index', {
+  transactions.getAllTransactions((err, transactions)=>{
+     if (err) {
+            prettyPrintResponse(err);
+          }
+    const t = {
+    records: transactions,
     PLAID_PUBLIC_KEY,
     PLAID_ENV,
-  });
+  };
+  console.log(t);
+  res.render('index', t);
+  })
+  
 });
 
 //todo add to db
