@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"> 
+  </head><div id='dashboard'></div>
+<!--script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script-->
+<script src="javascripts/plotly-latest.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+<script>
+	var records = <%- JSON.stringify(records) %>;
+</script>
+<script type="module" src="javascripts/main.js"></script>
+</html>
