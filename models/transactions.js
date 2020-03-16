@@ -1,6 +1,7 @@
 const MongoClient = require('mongodb').MongoClient;
 const dao = require('../daos/plaid_dao');
 const uri = 'mongodb://localhost/expensemanager';
+const prettyPrintResponse = require('../helpers/helpers')
 
 function addColumn(arr, name, value) {
   for (let i = 0; i < arr.length; i++) {
@@ -14,7 +15,7 @@ module.exports = {
       if (err) {
         prettyPrintResponse(err);
       }
-      if (transactions.length) {
+      if (transactions && transactions.length) {
         MongoClient.connect(uri, (err, mongoclient) => {
           if (err) {
             prettyPrintResponse(err);

@@ -7,6 +7,7 @@ const PLAID_CLIENT_ID = envvar.string('PLAID_CLIENT_ID');
 const PLAID_SECRET = envvar.string('PLAID_SECRET');
 const PLAID_PUBLIC_KEY = envvar.string('PLAID_PUBLIC_KEY');
 const PLAID_ENV = envvar.string('PLAID_ENV', 'sandbox');
+const prettyPrintResponse = require('../helpers/helpers')
 
 const moment = require('moment');
 

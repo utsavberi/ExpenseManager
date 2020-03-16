@@ -50,8 +50,20 @@ function fetchAllBankTransactions(){
 // fetchAllBankTransactions();
 //todo make this only update to new transactions
 
+router.get('/abc', (req, res, next) => {
+  console.log('in plaid init index2.js');
+    
+    const t = {
+    records: transactions,
+    PLAID_PUBLIC_KEY,
+    PLAID_ENV,
+  };
+  res.render('index2', t);
+});
+
 /* GET home page. */
 router.get('/', (req, res, next) => {
+  console.log('uberi fetching transactions');
   transactions.getAllTransactions((err, transactions)=>{
      if (err) {
             prettyPrintResponse(err);
@@ -61,7 +73,8 @@ router.get('/', (req, res, next) => {
     PLAID_PUBLIC_KEY,
     PLAID_ENV,
   };
-  console.log(t);
+  console.log('got transactions');
+  // console.log(t);
   res.render('index', t);
   })
   

@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "To run, clone the repo and add a data.js file. Data.js should have the following content:\r ```\r var data = `<csv data of bank statement>`;\r ```\r Note the backtick quotes used for multi line string. Also, data should not have any empty lines or the column headings.",
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "devstart": "nodemon ./bin/www"
   },
   "repository": {
     "type": "git",
@@ -30,10 +31,11 @@
   },
   "homepage": "https://github.com/utsavberi/ExpenseManager#readme",
   "devDependencies": {
-    "eslint-plugin-react": "^7.11.1",
     "eslint": "^5.7.0",
     "eslint-config-airbnb": "^17.1.0",
     "eslint-plugin-import": "^2.14.0",
-    "eslint-plugin-jsx-a11y": "^6.1.2"
+    "eslint-plugin-jsx-a11y": "^6.1.2",
+    "eslint-plugin-react": "^7.11.1",
+    "nodemon": "^2.0.2"
   }
 }
