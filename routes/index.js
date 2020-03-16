@@ -63,21 +63,43 @@ router.get('/abc', (req, res, next) => {
 
 /* GET home page. */
 router.get('/', (req, res, next) => {
+<<<<<<< HEAD
   console.log('uberi fetching transactions');
   transactions.getAllTransactions((err, transactions)=>{
      if (err) {
             prettyPrintResponse(err);
           }
     const t = {
+=======
+//   transactions.getAllTransactions((err, transactions)=>{
+//      if (err) {
+//             prettyPrintResponse(err);
+//           }
+//     const t = {
+//     records: transactions,
+//     PLAID_PUBLIC_KEY,
+//     PLAID_ENV,
+//   };
+//   console.log(t);
+//   res.render('index', t);
+//   })
+
+//test
+const t = {
+>>>>>>> 8bcb9d4ec64c505f000cd628ab2916594d2ca6dd
     records: transactions,
     PLAID_PUBLIC_KEY,
     PLAID_ENV,
   };
+<<<<<<< HEAD
   console.log('got transactions');
   // console.log(t);
   res.render('index', t);
   })
   
+=======
+  res.json(t);
+>>>>>>> 8bcb9d4ec64c505f000cd628ab2916594d2ca6dd
 });
 
 //todo add to db
